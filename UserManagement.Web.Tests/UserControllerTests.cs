@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.Models;
@@ -25,6 +26,26 @@ public class UserControllerTests
             .Which.Items.Should().BeEquivalentTo(users);
     }
 
+    [Fact]
+    public void User_ShouldStoreAndReturnDateOfBirth()
+    {
+        // Arrange
+        var expectedDob = new DateTime(1994, 5, 15);
+
+        // Act
+        var user = new User
+        {
+            Forename = "John",
+            Surname = "Smith",
+            Email = "jsmith@example.com",
+            IsActive = true,
+            DateOfBirth = expectedDob
+        };
+
+        // Assert
+        user.DateOfBirth.Should().Be(expectedDob);
+    }
+
     private User[] SetupUsers(string forename = "Johnny", string surname = "User", string email = "juser@example.com", bool isActive = true)
     {
         var users = new[]
@@ -34,7 +55,8 @@ public class UserControllerTests
                 Forename = forename,
                 Surname = surname,
                 Email = email,
-                IsActive = isActive
+                IsActive = isActive,
+                DateOfBirth = new DateTime(1990, 1, 1)
             }
         };
 
