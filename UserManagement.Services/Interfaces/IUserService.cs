@@ -7,15 +7,10 @@ namespace UserManagement.Services.Domain.Interfaces;
 public interface IUserService 
 {
     /// <summary>
-    /// Return users by active state
+    /// Return users by active state asynchronously.
     /// </summary>
     /// <param name="isActive"></param>
     /// <returns></returns>
-    IEnumerable<User> FilterByActive(bool isActive);
-    IEnumerable<User> GetAll();
-
-    // Add async versions
-    Task<List<User>> GetAllAsync();
     Task<List<User>> FilterByActiveAsync(bool isActive);
-
+    Task<List<User>> GetAllAsync();
 }
