@@ -1,0 +1,29 @@
+﻿@model List<UserManagement.Models.LogEntry>
+
+<h2>Application Logs</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>UserId</th>
+            <th>Action</th>
+            <th>Details</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var log in Model)
+        {
+            <tr>
+                <td>@log.Created.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@log.UserId</td>
+                <td>@log.Action</td>
+                <td>@log.Details</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@log.Id" class="btn btn-sm btn-outline-secondary">View</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

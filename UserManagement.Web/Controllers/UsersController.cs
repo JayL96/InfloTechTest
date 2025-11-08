@@ -10,7 +10,12 @@ namespace UserManagement.WebMS.Controllers;
 public class UsersController : Controller
 {
     private readonly IUserService _userService;
-    public UsersController(IUserService userService) => _userService = userService;
+    private readonly ILogService _logService;
+    public UsersController(IUserService userService, ILogService logService)
+    {
+        _userService = userService;
+        _logService = logService;
+    }
 
     [HttpGet]
     public async Task<ViewResult> List(string? filter = "all")
@@ -49,6 +54,7 @@ public class UsersController : Controller
     {
         if (!ModelState.IsValid) return View(user);
         await _userService.CreateAsync(user);
+        await _logService.AddAsync(user.Id, LogAction.Created, $"Created user {user.Forename} {user.Surname}");
         TempData["Success"] = "User created successfully!";
         return RedirectToAction(nameof(List));
     }
@@ -58,6 +64,9 @@ public class UsersController : Controller
     {
         var user = await _userService.GetByIdAsync(id);
         if (user == null) return NotFound();
+        await _logService.AddAsync(id, LogAction.Viewed, "Viewed user details");
+        var userLogs = await _logService.GetForUserAsync(id);
+        ViewBag.UserLogs = userLogs;
         return View(user);
     }
 
@@ -74,6 +83,7 @@ public class UsersController : Controller
     {
         if (!ModelState.IsValid) return View(user);
         await _userService.UpdateAsync(user);
+        await _logService.AddAsync(user.Id, LogAction.Updated, $"Updated user {user.Id}");
         TempData["Success"] = "User updated successfully!";
         return RedirectToAction(nameof(List));
     }
@@ -90,6 +100,7 @@ public class UsersController : Controller
     public async Task<IActionResult> DeleteConfirm(int id)
     {
         await _userService.DeleteAsync(id);
+        await _logService.AddAsync(id, LogAction.Deleted, $"Deleted user {id}");
         TempData["Success"] = "User deleted successfully!";
         return RedirectToAction(nameof(List));
     }

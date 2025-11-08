@@ -1,0 +1,16 @@
+﻿@model UserManagement.Models.LogEntry
+
+<h2>Log Entry Details</h2>
+
+<dl class="row">
+    <dt class="col-sm-3">User ID</dt>
+    <dd class="col-sm-9">@Model.UserId</dd>
+    <dt class="col-sm-3">Action</dt>
+    <dd class="col-sm-9">@Model.Action</dd>
+    <dt class="col-sm-3">Details</dt>
+    <dd class="col-sm-9">@Model.Details</dd>
+    <dt class="col-sm-3">Date</dt>
+    <dd class="col-sm-9">@Model.Created.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd>
+</dl>
+
+<a asp-action="Index" class="btn btn-secondary">Back</a>
