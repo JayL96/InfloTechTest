@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using UserManagement.Models;
 using UserManagement.Services.Domain.Interfaces;
 using UserManagement.Web.Models.Users;
 
@@ -38,5 +39,58 @@ public class UsersController : Controller
         };
 
         return View(model);
+    }
+
+    [HttpGet("create")]
+    public ViewResult Create() => View(new User());
+
+    [HttpPost("create")]
+    public async Task<IActionResult> Create(User user)
+    {
+        if (!ModelState.IsValid) return View(user);
+        await _userService.CreateAsync(user);
+        TempData["Success"] = "User created successfully!";
+        return RedirectToAction(nameof(List));
+    }
+
+    [HttpGet("view/{id}")]
+    public async Task<IActionResult> View(int id)
+    {
+        var user = await _userService.GetByIdAsync(id);
+        if (user == null) return NotFound();
+        return View(user);
+    }
+
+    [HttpGet("edit/{id}")]
+    public async Task<IActionResult> Edit(int id)
+    {
+        var user = await _userService.GetByIdAsync(id);
+        if (user == null) return NotFound();
+        return View(user);
+    }
+
+    [HttpPost("edit/{id}")]
+    public async Task<IActionResult> Edit(User user)
+    {
+        if (!ModelState.IsValid) return View(user);
+        await _userService.UpdateAsync(user);
+        TempData["Success"] = "User updated successfully!";
+        return RedirectToAction(nameof(List));
+    }
+
+    [HttpGet("delete/{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var user = await _userService.GetByIdAsync(id);
+        if (user == null) return NotFound();
+        return View(user);
+    }
+
+    [HttpPost("delete/{id}")]
+    public async Task<IActionResult> DeleteConfirm(int id)
+    {
+        await _userService.DeleteAsync(id);
+        TempData["Success"] = "User deleted successfully!";
+        return RedirectToAction(nameof(List));
     }
 }

@@ -20,8 +20,8 @@ public class UserService : IUserService
     public Task<List<User>> FilterByActiveAsync(bool isActive)
     {
         var users = _dataAccess.GetAll<User>()
-                                   .Where(u => u.IsActive == isActive)
-                                   .ToList();
+                               .Where(u => u.IsActive == isActive)
+                               .ToList();
         return Task.FromResult(users);
     }
 
@@ -32,5 +32,54 @@ public class UserService : IUserService
     {
         var users = _dataAccess.GetAll<User>().ToList();
         return Task.FromResult(users);
+    }
+
+    /// <summary>
+    /// Retrieve a user by ID.
+    /// </summary>
+    public Task<User?> GetByIdAsync(int id)
+    {
+        var user = _dataAccess.GetAll<User>().FirstOrDefault(u => u.Id == id);
+        return Task.FromResult(user);
+    }
+
+    /// <summary>
+    /// Create a new user.
+    /// </summary>
+    public Task CreateAsync(User user)
+    {
+        _dataAccess.Create(user);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Update an existing user.
+    /// </summary>
+    public Task UpdateAsync(User user)
+    {
+        var existing = _dataAccess.GetAll<User>().FirstOrDefault(u => u.Id == user.Id);
+        if (existing != null)
+        {
+            existing.Forename = user.Forename;
+            existing.Surname = user.Surname;
+            existing.Email = user.Email;
+            existing.IsActive = user.IsActive;
+            existing.DateOfBirth = user.DateOfBirth;
+            _dataAccess.Update(existing);
+        }
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Delete a user by ID.
+    /// </summary>
+    public Task DeleteAsync(int id)
+    {
+        var user = _dataAccess.GetAll<User>().FirstOrDefault(u => u.Id == id);
+        if (user != null)
+        {
+            _dataAccess.Delete(user);
+        }
+        return Task.CompletedTask;
     }
 }

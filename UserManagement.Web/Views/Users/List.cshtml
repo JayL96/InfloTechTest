@@ -2,6 +2,14 @@
 
 <h2>User List</h2>
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
 <div class="table-responsive">
     <table class="table table-striped">
         <thead>
@@ -43,9 +51,9 @@
                                 Actions
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="btnToggleActions">
-                                <li><a class="dropdown-item" href="#">View</a></li>
-                                <li><a class="dropdown-item" href="#">Edit</a></li>
-                                <li><a class="dropdown-item" href="#">Delete</a></li>
+                                <li><a class="dropdown-item" asp-action="View" asp-route-id="@item.Id">View</a></li>
+                                <li><a class="dropdown-item" asp-action="Edit" asp-route-id="@item.Id">Edit</a></li>
+                                <li><a class="dropdown-item" asp-action="Delete" asp-route-id="@item.Id" method="post">Delete</a></li>
                             </ul>
                         </div>
                     </td>
@@ -65,7 +73,7 @@
            class="btn btn-default">Non Active</a>
     </div>
 
-    <a href="#" class="btn btn-primary float-end">
+    <a asp-controller="Users" asp-action="Create" class="btn btn-primary float-end">
         Add User
     </a>
 </div>

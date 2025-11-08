@@ -13,4 +13,8 @@ public interface IUserService
     /// <returns></returns>
     Task<List<User>> FilterByActiveAsync(bool isActive);
     Task<List<User>> GetAllAsync();
+    Task<User?> GetByIdAsync(int id);
+    Task CreateAsync(User user);
+    Task UpdateAsync(User user);
+    Task DeleteAsync(int id);
 }
