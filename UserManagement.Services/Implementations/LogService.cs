@@ -5,6 +5,7 @@ using UserManagement.Data;
 using UserManagement.Models;
 using UserManagement.Services.Domain.Interfaces;
 using System;
+using static System.Collections.Specialized.BitVector32;
 
 namespace UserManagement.Services.Domain.Implementations;
 
@@ -28,30 +29,51 @@ public class LogService : ILogService
         await Task.CompletedTask;
     }
 
-    public async Task<List<LogEntry>> GetForUserAsync(long userId)
+    public async Task<List<LogEntry>> GetForUserAsync(long userId, int take = 20)
     {
         var logs = _data.GetAll<LogEntry>()
             .Where(l => l.UserId == userId)
             .OrderByDescending(l => l.Created)
-            .ToList();
+            .Take(take);
 
-        return await Task.FromResult(logs);
+        return await Task.FromResult(logs.ToList());
     }
 
-    public async Task<List<LogEntry>> GetPagedAsync(int page, int pageSize)
+    public async Task<List<LogEntry>> GetPagedAsync(int page, int pageSize, LogAction? action = null, string? search = null)
     {
-        var logs = _data.GetAll<LogEntry>()
-            .OrderByDescending(l => l.Created)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToList();
+        var logs = _data.GetAll<LogEntry>();
 
-        return await Task.FromResult(logs);
+        if (action.HasValue)
+            logs = logs.Where(l => l.Action == action.Value);
+
+        if (!string.IsNullOrWhiteSpace(search))
+            logs = logs.Where(l => (l.Details ?? "").Contains(search, StringComparison.OrdinalIgnoreCase)
+                          || l.Action.ToString().Contains(search, StringComparison.OrdinalIgnoreCase));
+
+        logs = logs.OrderByDescending(l => l.Created)
+             .Skip((page - 1) * pageSize)
+             .Take(pageSize);
+
+        return await Task.FromResult(logs.ToList());
     }
 
     public async Task<LogEntry?> GetByIdAsync(long id)
     {
         var log = _data.GetAll<LogEntry>().FirstOrDefault(l => l.Id == id);
         return await Task.FromResult(log);
+    }
+
+    public async Task<int> CountAsync(LogAction? action = null, string? search = null)
+    {
+        var q = _data.GetAll<LogEntry>();
+
+        if (action.HasValue)
+            q = q.Where(l => l.Action == action.Value);
+
+        if (!string.IsNullOrWhiteSpace(search))
+            q = q.Where(l => (l.Details ?? "").Contains(search, StringComparison.OrdinalIgnoreCase)
+                          || l.Action.ToString().Contains(search, StringComparison.OrdinalIgnoreCase));
+
+        return await Task.FromResult(q.Count());
     }
 }

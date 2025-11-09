@@ -1,29 +1,112 @@
-﻿@model List<UserManagement.Models.LogEntry>
+﻿@model UserManagement.Web.Models.Logs.LogsListViewModel
+@using UserManagement.Models
 
-<h2>Application Logs</h2>
+@{
+    ViewData["Title"] = "Logs";
+}
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>UserId</th>
-            <th>Action</th>
-            <th>Details</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var log in Model)
-        {
+<h2 class="mb-3">Application Logs</h2>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-3">
+        <select name="action" class="form-select">
+            <option value="">All actions</option>
+            @foreach (LogAction a in Enum.GetValues(typeof(LogAction)))
+            {
+                <option value="@((int)a)" selected="@(Model.Action.HasValue && Model.Action.Value == a)">
+                    @a
+                </option>
+            }
+        </select>
+    </div>
+    <div class="col-md-5">
+        <input name="search" value="@Model.Search" class="form-control" placeholder="Search by details or action..." />
+    </div>
+    <div class="col-md-2">
+        <select name="pageSize" class="form-select">
+            @foreach (var s in new[] { 10, 20, 50, 100 })
+            {
+                <option value="@s" selected="@(Model.PageSize == s)">@s per page</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-primary w-100" type="submit">Apply</button>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-striped table-sm">
+        <thead>
             <tr>
-                <td>@log.Created.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                <td>@log.UserId</td>
-                <td>@log.Action</td>
-                <td>@log.Details</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@log.Id" class="btn btn-sm btn-outline-secondary">View</a>
-                </td>
+                <th style="width: 180px;">Date</th>
+                <th style="width: 90px;">UserId</th>
+                <th style="width: 110px;">Action</th>
+                <th>Details</th>
+                <th style="width: 1px;"></th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @if (Model.Items.Any())
+            {
+                @foreach (var x in Model.Items)
+                {
+                    <tr>
+                        <td>@x.Created.ToLocalTime().ToString("dd/MM/yyyy, HH:mm")</td>
+                        <td>@x.UserId</td>
+                        <td>
+                            @switch (x.Action)
+                            {
+                                case LogAction.Created:
+                                    @:<span class="badge bg-success">Created</span>
+                                    break;
+                                case LogAction.Updated:
+                                    @:<span class="badge bg-warning text-dark">Updated</span>
+                                    break;
+                                case LogAction.Deleted:
+                                    @:<span class="badge bg-danger">Deleted</span>
+                                    break;
+                                default:
+                                    @:<span class="badge bg-secondary">Viewed</span>
+                                    break;
+                            }
+                        </td>
+                        <td>@x.Details</td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@x.Id" class="btn btn-sm btn-outline-secondary">View</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="5" class="text-muted">No logs found.</td></tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <nav class="d-flex justify-content-between align-items-center">
+        <a class="btn btn-outline-primary @(Model.HasPrev ? "" : "disabled")"
+           asp-action="Index"
+           asp-route-page="@(Model.Page - 1)"
+           asp-route-pageSize="@Model.PageSize"
+           asp-route-action="@(Model.Action.HasValue ? (int)Model.Action.Value : null)"
+           asp-route-search="@Model.Search">
+            ← Previous
+        </a>
+
+        <span>Page @Model.Page of @Model.TotalPages</span>
+
+        <a class="btn btn-outline-primary @(Model.HasNext ? "" : "disabled")"
+           asp-action="Index"
+           asp-route-page="@(Model.Page + 1)"
+           asp-route-pageSize="@Model.PageSize"
+           asp-route-action="@(Model.Action.HasValue ? (int)Model.Action.Value : null)"
+           asp-route-search="@Model.Search">
+            Next →
+        </a>
+    </nav>
+}

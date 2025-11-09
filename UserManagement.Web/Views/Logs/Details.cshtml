@@ -1,16 +1,23 @@
 ﻿@model UserManagement.Models.LogEntry
+@using UserManagement.Models
+
+@{
+    ViewData["Title"] = "Log Details";
+}
 
 <h2>Log Entry Details</h2>
 
 <dl class="row">
-    <dt class="col-sm-3">User ID</dt>
+    <dt class="col-sm-3">Id</dt>
+    <dd class="col-sm-9">@Model.Id</dd>
+    <dt class="col-sm-3">UserId</dt>
     <dd class="col-sm-9">@Model.UserId</dd>
     <dt class="col-sm-3">Action</dt>
     <dd class="col-sm-9">@Model.Action</dd>
     <dt class="col-sm-3">Details</dt>
     <dd class="col-sm-9">@Model.Details</dd>
     <dt class="col-sm-3">Date</dt>
-    <dd class="col-sm-9">@Model.Created.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd>
+    <dd class="col-sm-9">@Model.Created.ToLocalTime().ToString("dd/MM/yyyy, HH:mm")</dd>
 </dl>
 
 <a asp-action="Index" class="btn btn-secondary">Back</a>
