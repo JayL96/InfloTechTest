@@ -29,12 +29,13 @@ public class LogService : ILogService
         await Task.CompletedTask;
     }
 
-    public async Task<List<LogEntry>> GetForUserAsync(long userId, int take = 20)
+    public async Task<List<LogEntry>> GetForUserAsync(long userId, int page, int pageSize)
     {
         var logs = _data.GetAll<LogEntry>()
-            .Where(l => l.UserId == userId)
-            .OrderByDescending(l => l.Created)
-            .Take(take);
+                     .Where(l => l.UserId == userId)
+                     .OrderByDescending(l => l.Created)
+                     .Skip((page - 1) * pageSize)
+                     .Take(pageSize);
 
         return await Task.FromResult(logs.ToList());
     }
@@ -75,5 +76,11 @@ public class LogService : ILogService
                           || l.Action.ToString().Contains(search, StringComparison.OrdinalIgnoreCase));
 
         return await Task.FromResult(q.Count());
+    }
+
+    public async Task<int> CountForUserAsync(long userId)
+    {
+        var count = _data.GetAll<LogEntry>().Count(l => l.UserId == userId);
+        return await Task.FromResult(count);
     }
 }

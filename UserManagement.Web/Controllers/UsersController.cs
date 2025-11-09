@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.Models;
 using UserManagement.Services.Domain.Interfaces;
@@ -60,13 +61,22 @@ public class UsersController : Controller
     }
 
     [HttpGet("view/{id}")]
-    public async Task<IActionResult> View(int id)
+    public async Task<IActionResult> View(long id, int page = 1, int pageSize = 10)
     {
-        var user = await _userService.GetByIdAsync(id);
+        var user = await _userService.GetByIdAsync((int)id);
         if (user == null) return NotFound();
+
         await _logService.AddAsync(id, LogAction.Viewed, "Viewed user details");
-        var userLogs = await _logService.GetForUserAsync(id);
-        ViewBag.UserLogs = userLogs;
+
+        var logs = await _logService.GetForUserAsync(id, page, pageSize);
+        var totalLogs = await _logService.CountForUserAsync(id);
+
+        ViewBag.Page = page;
+        ViewBag.PageSize = pageSize;
+        ViewBag.TotalLogs = totalLogs;
+        ViewBag.TotalPages = (int)Math.Ceiling((double)totalLogs / pageSize);
+        ViewBag.UserLogs = logs;
+
         return View(user);
     }
 
