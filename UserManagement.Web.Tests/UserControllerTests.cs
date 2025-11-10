@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using UserManagement.Models;
 using UserManagement.Services.Domain.Interfaces;
 using UserManagement.Web.Models.Users;
@@ -65,6 +67,144 @@ public class UserControllerTests
             .ReturnsAsync(users.ToList());
 
         return users;
+    }
+
+    // log tests
+
+    [Fact]
+    public async Task Create_Post_ShouldLogCreated()
+    {
+        // Arrange
+        var user = new User
+        {
+            Id = 99,
+            Forename = "A",
+            Surname = "B",
+            Email = "ab@example.com",
+            DateOfBirth = new DateTime(1995, 05, 15),
+            IsActive = true
+        };
+
+        _userService.Setup(s => s.CreateAsync(It.IsAny<User>()))
+            .Returns(Task.CompletedTask);
+        _logService.Setup(s => s.AddAsync(It.IsAny<long>(), It.IsAny<LogAction>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        var controller = CreateController();
+
+        controller.TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
+            new DefaultHttpContext(),
+            Mock.Of<Microsoft.AspNetCore.Mvc.ViewFeatures.ITempDataProvider>()
+        );
+
+        // Act
+        var result = await controller.Create(user);
+
+        // Assert
+        result.Should().BeOfType<RedirectToActionResult>()
+            .Which.ActionName.Should().Be(nameof(UsersController.List));
+
+        _logService.Verify(l => l.AddAsync(user.Id, LogAction.Created, It.Is<string>(msg => msg.Contains("Created user"))), Times.Once);
+    }
+
+    [Fact]
+    public async Task Edit_Post_ShouldLogUpdated()
+    {
+        // Arrange
+        var user = new User
+        {
+            Id = 5,
+            Forename = "C",
+            Surname = "D",
+            Email = "cd@example.com",
+            IsActive = true,
+            DateOfBirth = new DateTime(1996, 8, 10)
+        };
+
+        _userService.Setup(s => s.UpdateAsync(It.IsAny<User>()))
+            .Returns(Task.CompletedTask);
+        _logService.Setup(s => s.AddAsync(It.IsAny<long>(), It.IsAny<LogAction>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        var controller = CreateController();
+
+        controller.TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
+            new DefaultHttpContext(),
+            Mock.Of<Microsoft.AspNetCore.Mvc.ViewFeatures.ITempDataProvider>()
+        );
+
+        // Act
+        var result = await controller.Edit(user);
+
+        // Assert
+        result.Should().BeOfType<RedirectToActionResult>()
+            .Which.ActionName.Should().Be(nameof(UsersController.List));
+
+        _logService.Verify(l => l.AddAsync(user.Id, LogAction.Updated, It.IsAny<string>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteConfirm_Post_ShouldLogDeleted()
+    {
+        // Arrange
+        var id = 7;
+
+        _userService.Setup(s => s.GetByIdAsync(It.IsAny<int>()))
+            .ReturnsAsync(new User
+            {
+                Id = id,
+                Forename = "John",
+                Surname = "Smith",
+                Email = "j.smith@example.com",
+                DateOfBirth = new DateTime(1992, 3, 22),
+                IsActive = true
+            });
+
+        _userService.Setup(s => s.DeleteAsync(It.IsAny<int>()))
+            .Returns(Task.CompletedTask);
+
+        _logService.Setup(s => s.AddAsync(It.IsAny<long>(), It.IsAny<LogAction>(), It.IsAny<string>()))
+            .Returns(Task.CompletedTask);
+
+        var controller = CreateController();
+
+        controller.TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
+            new DefaultHttpContext(),
+            Mock.Of<Microsoft.AspNetCore.Mvc.ViewFeatures.ITempDataProvider>()
+        );
+
+        // Act
+        var result = await controller.DeleteConfirm(id);
+
+        // Assert
+        result.Should().BeOfType<RedirectToActionResult>()
+            .Which.ActionName.Should().Be(nameof(UsersController.List));
+
+        _logService.Verify(l => l.AddAsync(id, LogAction.Deleted,
+            It.Is<string>(msg => msg.Contains("John") && msg.Contains("Smith"))), Times.Once);
+    }
+
+
+    [Fact]
+    public async Task View_Get_ShouldLogViewed_AndPassLogsToViewBag()
+    {
+        // Arrange
+        var controller = CreateController();
+        var id = 3;
+
+        _userService.Setup(s => s.GetByIdAsync(id)).ReturnsAsync(new User { Id = id, Forename = "X", Surname = "Y", Email = "x@y.com", IsActive = true });
+        _logService.Setup(l => l.GetForUserAsync(id, It.IsAny<int>(), It.IsAny<int>()))
+             .ReturnsAsync(new System.Collections.Generic.List<LogEntry>
+             {
+                     new LogEntry { Id = 1, UserId = id, Action = LogAction.Viewed }
+             });
+
+        // Act
+        var result = await controller.View(id);
+
+        // Assert
+        result.Should().BeOfType<ViewResult>();
+        _logService.Verify(l => l.AddAsync(id, LogAction.Viewed, It.IsAny<string>()), Times.Once);
     }
 
     private readonly Mock<IUserService> _userService = new();

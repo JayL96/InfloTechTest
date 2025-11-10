@@ -55,7 +55,7 @@ public class UsersController : Controller
     {
         if (!ModelState.IsValid) return View(user);
         await _userService.CreateAsync(user);
-        await _logService.AddAsync(user.Id, LogAction.Created, $"Created user {user.Forename} {user.Surname}");
+        await _logService.AddAsync(user.Id, LogAction.Created, $"Created user {user.Forename} {user.Surname} (ID {user.Id})");
         TempData["Success"] = "User created successfully!";
         return RedirectToAction(nameof(List));
     }
@@ -93,7 +93,7 @@ public class UsersController : Controller
     {
         if (!ModelState.IsValid) return View(user);
         await _userService.UpdateAsync(user);
-        await _logService.AddAsync(user.Id, LogAction.Updated, $"Updated user {user.Id}");
+        await _logService.AddAsync(user.Id, LogAction.Updated, $"Updated user {user.Forename} {user.Surname} (ID {user.Id})");
         TempData["Success"] = "User updated successfully!";
         return RedirectToAction(nameof(List));
     }
@@ -109,8 +109,10 @@ public class UsersController : Controller
     [HttpPost("delete/{id}")]
     public async Task<IActionResult> DeleteConfirm(int id)
     {
+        var user = await _userService.GetByIdAsync(id);
+        if (user == null) return NotFound();
         await _userService.DeleteAsync(id);
-        await _logService.AddAsync(id, LogAction.Deleted, $"Deleted user {id}");
+        await _logService.AddAsync(id, LogAction.Deleted, $"Deleted user {user.Forename} {user.Surname} (ID {user.Id})");
         TempData["Success"] = "User deleted successfully!";
         return RedirectToAction(nameof(List));
     }
