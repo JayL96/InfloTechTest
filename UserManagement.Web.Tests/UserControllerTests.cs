@@ -181,7 +181,7 @@ public class UserControllerTests
             .Which.ActionName.Should().Be(nameof(UsersController.List));
 
         _logService.Verify(l => l.AddAsync(id, LogAction.Deleted,
-            It.Is<string>(msg => msg.Contains("John") && msg.Contains("Smith"))), Times.Once);
+            It.Is<string>(msg => msg.Contains("Deleted user"))), Times.Once);
     }
 
 
